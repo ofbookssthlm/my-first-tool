@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pig Latin Translator</title>
+  <style>
+    /* Core Layout & Styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #a8ff78 0%, #78ffd6 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      color: #2c3e50;
+    }
+
+    /* Main Container Card */
+    .container {
+      background: #ffffff;
+      width: 100%;
+      max-width: 680px;
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Header Styling */
+    header {
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      color: #2e7d32;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: #666;
+      font-size: 1rem;
+    }
+
+    /* Input & Output Sections */
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #4a5568;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 110px;
+      padding: 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      font-size: 1.1rem;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    textarea:focus {
+      border-color: #48bb78;
+      box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.2);
+    }
+
+    /* Output Area Styling */
+    .output-box {
+      background: #f7fafc;
+      border: 2px dashed #cbd5e0;
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 110px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #2d3748;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    /* Distinct styling for placeholder state vs live content */
+    .output-box.is-placeholder {
+      color: #a0aec0;
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    /* Action Buttons Bar */
+    .button-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      flex: 1;
+      min-width: 130px;
+      padding: 16px 24px;
+      border: none;
+      border-radius: 16px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      user-select: none;
+    }
+
+    .btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15);
+    }
+
+    /* Vibrant Buttons */
+    .btn-translate {
+      background: #48bb78;
+      color: #ffffff;
+    }
+    .btn-translate:hover {
+      background: #38a169;
+    }
+
+    .btn-clear {
+      background: #f56565;
+      color: #ffffff;
+    }
+    .btn-clear:hover {
+      background: #e53e3e;
+    }
+
+    .btn-copy {
+      background: #4299e1;
+      color: #ffffff;
+    }
+    .btn-copy:hover {
+      background: #3182ce;
+    }
+
+    /* Presets Section */
+    .presets {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .preset-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-preset {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      color: #ffffff;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+      transition: all 0.15s ease;
+    }
+
+    .btn-preset:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    .p1 { background: #ed8936; }
+    .p1:hover { background: #dd6b20; }
+    .p2 { background: #9f7aea; }
+    .p2:hover { background: #805ad5; }
+    .p3 { background: #ed64a6; }
+    .p3:hover { background: #d53f8c; }
+    .p4 { background: #38b2ac; }
+    .p4:hover { background: #319795; }
+
+    /* Toast Notification System */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #2d3748;
+      color: #ffffff;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-weight: 600;
+      opacity: 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .toast.error {
+      background: #e53e3e;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>🐷 Pig Latin Translator</h1>
+      <p>Station 2 Assembly Line — Refined Engine Edition</p>
+    </header>
+
+    <!-- Text Input Area -->
+    <div class="field-group">
+      <label for="inputText">English Text</label>
+      <textarea id="inputText" placeholder="Type words, sentences, or contractions here..."></textarea>
+    </div>
+
+    <!-- Big Action Buttons -->
+    <div class="button-group">
+      <button class="btn btn-translate" id="translateBtn">🚀 Translate</button>
+      <button class="btn btn-copy" id="copyBtn">📋 Copy</button>
+      <button class="btn btn-clear" id="clearBtn">🗑️ Clear</button>
+    </div>
+
+    <!-- Preset Options -->
+    <div class="presets">
+      <label id="quickWordsLabel">Quick Words</label>
+      <div class="preset-buttons" aria-labelledby="quickWordsLabel">
+        <button class="btn-preset p1" onclick="insertPreset('Queen\'s Café')">Queen's Café</button>
+        <button class="btn-preset p2" onclick="insertPreset('Don\'t stop! HELLO iPhone!')">Don't stop! HELLO iPhone!</button>
+        <button class="btn-preset p3" onclick="insertPreset('Rhythm & Yelling')">Rhythm & Yelling</button>
+        <button class="btn-preset p4" onclick="insertPreset('Smörgåsbord')">Smörgåsbord</button>
+      </div>
+    </div>
+
+    <!-- Output Display with accessibility & aria linkage -->
+    <div class="field-group">
+      <label id="outputLabel" for="outputBox">Pig Latin Output</label>
+      <div 
+        id="outputBox" 
+        class="output-box is-placeholder" 
+        tabindex="0"
+        role="region"
+        aria-labelledby="outputLabel" 
+        aria-live="polite">Your translation will appear here...</div>
+    </div>
+  </div>
+
+  <!-- Toast Message -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /**
+     * Enhanced Pig Latin Engine addressing linguistic edge cases:
+     * - 'qu' treated as consonant unit
+     * - 'y' as vowel (when not initial, e.g. "my" -> "ymay")
+     * - Supports Unicode/accented characters
+     */
+    function pigLatinWord(word) {
+      if (!word) return word;
+
+      // Defined vowels (including Unicode accented vowels)
+      const isVowelChar = (ch) => /[aeiouáéíóúàèìòùäöüåæø]/i.test(ch);
+
+      // Check if letter at index acts as a vowel in context
+      function isVowelAt(str, i) {
+        const c = str[i].toLowerCase();
+        if (isVowelChar(c)) return true;
+        // 'Y' acts as vowel unless it's the leading character of the word
+        if (c === 'y') {
+          return i > 0;
+        }
+        return false;
+      }
+
+      // Find split index between leading consonant cluster and starting vowel
+      let splitIdx = 0;
+      while (splitIdx < word.length) {
+        if (isVowelAt(word, splitIdx)) {
+          break;
+        }
+        // Handle 'qu' or 'Qu' as a single consonant unit
+        if ((word[splitIdx] === 'q' || word[splitIdx] === 'Q') &&
+            splitIdx + 1 < word.length &&
+            (word[splitIdx + 1] === 'u' || word[splitIdx + 1] === 'U')) {
+          splitIdx += 2;
+          break;
+        }
+        splitIdx++;
+      }
+
+      // Vowel-first words get 'way' suffix
+      if (splitIdx === 0) {
+        return applyCapitalization(word, word + "way");
+      }
+
+      // Words with no vowels (or initial y with no other vowels)
+      if (splitIdx >= word.length) {
+        return applyCapitalization(word, word + "ay");
+      }
+
+      const prefix = word.slice(0, splitIdx);
+      const rest = word.slice(splitIdx);
+      const translated = rest + prefix + "ay";
+
+      return applyCapitalization(word, translated);
+    }
+
+    /**
+     * Preserves formatting & casing patterns:
+     * - ALL CAPS -> ALL CAPS
+     * - Title Case -> Title Case
+     * - Mixed Case (e.g. iPhone) -> Preserved mixed arrangement proportionally
+     */
+    function applyCapitalization(original, translated) {
+      const isLetter = (ch) => /\p{L}/u.test(ch);
+      const lettersOnly = [...original].filter(isLetter);
+
+      if (lettersOnly.length === 0) return translated;
+
+      const isAllCaps = lettersOnly.every(ch => ch === ch.toUpperCase() && ch !== ch.toLowerCase());
+      if (isAllCaps) {
+        return translated.toUpperCase();
+      }
+
+      const isTitleCase = lettersOnly[0] === lettersOnly[0].toUpperCase() &&
+                          lettersOnly.slice(1).every(ch => ch === ch.toLowerCase());
+
+      if (isTitleCase) {
+        return translated.charAt(0).toUpperCase() + translated.slice(1).toLowerCase();
+      }
+
+      // Mixed case pattern mapping (e.g., iPhone -> iPhoneway)
+      let origIndices = [];
+      for (let i = 0; i < original.length; i++) {
+        if (isLetter(original[i])) origIndices.push(original[i]);
+      }
+
+      let resultChars = translated.toLowerCase().split('');
+      for (let i = 0; i < Math.min(origIndices.length, resultChars.length); i++) {
+        if (origIndices[i] === origIndices[i].toUpperCase() && origIndices[i] !== origIndices[i].toLowerCase()) {
+          resultChars[i] = resultChars[i].toUpperCase();
+        }
+      }
+
+      return resultChars.join('');
+    }
+
+    /**
+     * Tokenizes text safely using Unicode property escapes (\p{L}) and apostrophe/hyphen support,
+     * preserving contractions (don't, it's), international characters (café, smörgåsbord),
+     * numbers, and punctuation intact.
+     */
+    function translateSentence(sentence) {
+      if (!sentence) return '';
+      
+      // Matches word tokens with letters, accented chars, internal apostrophes or hyphens
+      const wordRegex = /[\p{L}\p{M}]+(?:['’\-][\p{L}\p{M}]+)*/gu;
+
+      return sentence.replace(wordRegex, function(match) {
+        // If word contains internal contractions like "don't" or "it's"
+        if (match.includes("'") || match.includes("’")) {
+          const parts = match.split(/(['’])/);
+          return parts.map(part => (part === "'" || part === "’") ? part : pigLatinWord(part)).join('');
+        }
+        return pigLatinWord(match);
+      });
+    }
+
+    // --- UI Logic & Event Listeners ---
+    const inputText = document.getElementById('inputText');
+    const outputBox = document.getElementById('outputBox');
+    const translateBtn = document.getElementById('translateBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const toast = document.getElementById('toast');
+
+    const PLACEHOLDER_TEXT = 'Your translation will appear here...';
+
+    function updateTranslation() {
+      const text = inputText.value;
+      if (!text.trim()) {
+        outputBox.textContent = PLACEHOLDER_TEXT;
+        outputBox.classList.add('is-placeholder');
+        return;
+      }
+      
+      outputBox.classList.remove('is-placeholder');
+      outputBox.textContent = translateSentence(text);
+    }
+
+    // Auto-translate as user types
+    inputText.addEventListener('input', updateTranslation);
+    translateBtn.addEventListener('click', updateTranslation);
+
+    // Clear Button Action
+    clearBtn.addEventListener('click', () => {
+      inputText.value = '';
+      updateTranslation();
+      inputText.focus();
+    });
+
+    /**
+     * Modern Clipboard API handling with promise verification and fallback
+     */
+    async function copyToClipboard(text) {
+      // 1. Try Modern Clipboard API
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch (err) {
+          // Fall through to fallback attempt
+        }
+      }
+
+      // 2. Fallback attempt using execCommand with return verification
+      try {
+        const dummy = document.createElement("textarea");
+        dummy.value = text;
+        dummy.style.position = "fixed";
+        dummy.style.left = "-9999px";
+        dummy.style.top = "0";
+        document.body.appendChild(dummy);
+        dummy.focus();
+        dummy.select();
+        
+        const successful = document.execCommand('copy');
+        document.body.removeChild(dummy);
+        return successful;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    copyBtn.addEventListener('click', async () => {
+      if (outputBox.classList.contains('is-placeholder') || !outputBox.textContent.trim()) {
+        showToast("Nothing to copy!", true);
+        return;
+      }
+
+      const success = await copyToClipboard(outputBox.textContent);
+      if (success) {
+        showToast("Copied to clipboard!");
+      } else {
+        showToast("Failed to copy!", true);
+      }
+    });
+
+    function insertPreset(phrase) {
+      inputText.value = phrase;
+      updateTranslation();
+    }
+
+    function showToast(msg, isError = false) {
+      toast.textContent = msg;
+      toast.className = 'toast show' + (isError ? ' error' : '');
+      setTimeout(() => {
+        toast.className = 'toast';
+      }, 2500);
+    }
+  </script>
+</body>
+</html>
